@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>謎の多い旅館【mmの謎解き#2】</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --panel: #ffffff;
+      --text: #2f2a26;
+      --muted: #8a7f76;
+      --line: #ded6cd;
+      --accent: #d8849b;
+      --accent-dark: #b95f78;
+      --shadow: 0 12px 30px rgba(69, 48, 38, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+    }
+
+    .sidebar {
+      background: #2f2a26;
+      color: #fff;
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .game-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      letter-spacing: 0.05em;
+      line-height: 1.45;
+    }
+
+    .game-info {
+      margin: 0 0 24px;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .tab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tab-button {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 12px;
+      text-align: left;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .tab-button:hover:not(:disabled),
+    .tab-button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .tab-button:disabled {
+      color: rgba(255, 255, 255, 0.45);
+      cursor: not-allowed;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .main {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 48px 24px;
+    }
+
+    .content-card {
+      width: min(900px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+    }
+
+    .scene-label {
+      display: inline-flex;
+      color: #4f4a45;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 1.2;
+    }
+
+    .story-text {
+      color: #554d47;
+      line-height: 1.85;
+      margin: 0 0 24px;
+      white-space: pre-line;
+    }
+
+    .image-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin: 20px 0 24px;
+    }
+
+    .puzzle-image-wrap {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+
+    .puzzle-image {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .answer-area {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(216, 132, 155, 0.18);
+    }
+
+    .submit-button,
+    .next-button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .submit-button:hover,
+    .next-button:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+
+    .message {
+      min-height: 28px;
+      margin-top: 14px;
+      font-weight: 700;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .message.ok { color: #2f8f5b; }
+    .message.ng { color: #c44545; }
+
+    .post-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 24px;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 22px;
+      background: #111;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .post-button:hover {
+      opacity: 0.85;
+    }
+
+    .explanation {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      color: #554d47;
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
+    .reset-button {
+      margin-top: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #fff;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .reset-button:hover {
+      color: var(--text);
+      border-color: var(--muted);
+    }
+
+    @media (max-width: 760px) {
+      .app { display: block; }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: auto;
+        padding: 14px 12px;
+      }
+
+      .game-title {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+
+      .game-info {
+        font-size: 11px;
+        margin: 0 0 10px;
+      }
+
+      .tab-list {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .tab-button {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .main { padding: 20px 12px; }
+
+      .content-card {
+        padding: 22px 16px;
+        border-radius: 18px;
+      }
+
+      .answer-area { flex-direction: column; }
+
+      .submit-button,
+      .next-button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <p class="game-title">謎の多い旅館【mmの謎解き#2】</p>
+      <p class="game-info">想定クリア時間：150min
+公開：2026年5月9日
+制作：mm（@mm_syumida）#mmの謎解き</p>
+      <nav id="tabList" class="tab-list"></nav>
+    </aside>
+
+    <main class="main">
+      <section id="content" class="content-card"></section>
+    </main>
+  </div>
+
+  <script>
+    function slide(number) {
+      return "./nazo2/スライド" + number + ".JPG";
+    }
+
+    const scenes = [
+      {
+        id: "entrance",
+        title: "入口",
+        type: "story",
+        label: "ENTRANCE",
+        text: "俺は一人旅をした。\n※『ヒント』と入力すれば、ヒントが表示されます。",
+        images: [
+          slide(1),
+          slide(2),
+          slide(3)
+        ],
+        buttonText: "次へ"
+      },
+      {
+        id: "101",
+        title: "101",
+        type: "puzzle",
+        label: "ROOM 101",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(4),
+        answers: ["ご"],
+        hint: "とあるゲームのこと",
+        nextMessage: "正解！102が解放されました。"
+      },
+      {
+        id: "102",
+        title: "102",
+        type: "puzzle",
+        label: "ROOM 102",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(5),
+        answers: ["はたち", "ハタチ"],
+        hint: "いちばん上のイラストは、『ハタ』",
+        nextMessage: "正解！103が解放されました。"
+      },
+      {
+        id: "103",
+        title: "103",
+        type: "puzzle",
+        label: "ROOM 103",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(6),
+        answers: ["にし", "ニシ", "西"],
+        hint: "88を漢字1字に変換",
+        nextMessage: "正解！104が解放されました。"
+      },
+      {
+        id: "104",
+        title: "104",
+        type: "puzzle",
+        label: "ROOM 104",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(7),
+        answers: ["あからさま", "アカラサマ"],
+        hint: "8つの頭尾を持つヘビは、大蛇で、スサノオノミコトと関係あり",
+        nextMessage: "正解！105が解放されました。"
+      },
+      {
+        id: "105",
+        title: "105",
+        type: "puzzle",
+        label: "ROOM 105",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(8),
+        answers: ["31", "３１"],
+        hint: "ヒトが100、クビが１",
+        nextMessage: "正解！106が解放されました。"
+      },
+      {
+        id: "106",
+        title: "106",
+        type: "puzzle",
+        label: "ROOM 106",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(9),
+        answers: ["級"],
+        hint: "とある検定を表している",
+        nextMessage: "正解！201が解放されました。"
+      },
+      {
+        id: "201",
+        title: "201",
+        type: "puzzle",
+        label: "ROOM 201",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(10),
+        answers: ["三"],
+        hint: "横から見てみると・・・",
+        nextMessage: "正解！202が解放されました。"
+      },
+      {
+        id: "202",
+        title: "202",
+        type: "puzzle",
+        label: "ROOM 202",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(11),
+        answers: ["12", "１２", "じゅうに", "ジュウニ", "twelve"],
+        hint: "分数にして声に出して読んでみて",
+        nextMessage: "正解！203が解放されました。"
+      },
+      {
+        id: "203",
+        title: "203",
+        type: "puzzle",
+        label: "ROOM 203",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(12),
+        answers: ["ライオン"],
+        hint: "優勝する、すなわち王になる",
+        nextMessage: "正解！204が解放されました。"
+      },
+      {
+        id: "204",
+        title: "204",
+        type: "puzzle",
+        label: "ROOM 204",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(13),
+        answers: ["くろ", "クロ", "ぶらっく", "ブラック", "BLACK"],
+        hint: "丸は全部で何個ある？どこが何色で塗られている？",
+        nextMessage: "正解！205が解放されました。"
+      },
+      {
+        id: "205",
+        title: "205",
+        type: "puzzle",
+        label: "ROOM 205",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(14),
+        answers: ["ありがとう", "アリガトウ"],
+        hint: "一番左の縦は『ライト』が埋まる",
+        nextMessage: "正解！206が解放されました。"
+      },
+      {
+        id: "206",
+        title: "206",
+        type: "puzzle",
+        label: "ROOM 206",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(15),
+        answers: ["00030", "０００３０"],
+        hint: "矢印の左側の数字を英語にしてみると？",
+        nextMessage: "正解！3階が解放されました。"
+      },
+      {
+        id: "floor3",
+        title: "3階",
+        type: "puzzle",
+        label: "3F",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(16),
+        answers: ["わようせっちゅう"],
+        hint: "青い丸角、赤い丸角といえば？答えは四字熟語",
+        nextMessage: "正解！4階が解放されました。"
+      },
+      {
+        id: "floor4",
+        title: "4階",
+        type: "puzzle",
+        label: "4F",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(17),
+        answers: ["あきのじゅんいち"],
+        hint: "青い106は106の解答『級』を表している。青い四角に『るし』、これが表すのは何だろう。（さらなるヒントは、『ヒントヒント』と入力）",
+        hint2: "るし、は、いちまるし、の部屋のことを指していそう。矢印やカッコはすでに見たことあるはずだ。（さらなるヒントは、『ヒントヒントヒント』と入力）",
+        hint3: "るし、は104の解答の『あからさま』の『さま』を表している。【】は英日の翻訳。「」は？　そういえばここは4階、この建物は「2」階建てだとサイトに書かれていなかったっけ？（さらなるヒントは、『ヒントヒントヒントヒント』と入力。）",
+        hint4: "Xはずばり、『あき』だ。「」の中の数字はサイコロの裏の数字になる。つまり「五」級は、二級となり、二級→Y級だ。緑の矢印が表す意味をしっかり考えよう。",
+        nextMessage: "正解！5階が解放されました。"
+      },
+      {
+        id: "floor5",
+        title: "5階",
+        type: "puzzle",
+        label: "5F",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        images: [
+          slide(18),
+          slide(19)
+        ],
+        answers: ["と", "とのへや"],
+        hint: "まずは201の支配人の言葉の35文字目から37文字目を見よう（さらなるヒントは、『ヒントヒント』と入力）",
+        hint2: "直接的じゃないヒントではあるが、206の支配人の言葉『部屋も（中略）シンプルにすることを心がけています』。部屋はシンプルな表現なのかもしれない。（さらなるヒントは、『ヒントヒントヒント』と入力）",
+        hint3: "全ての客室の謎の答えに注目。答えと支配人の言葉の関係を考えよう。（さらなるヒントは、『ヒントヒントヒントヒント』と入力。）",
+        hint4: "全ての客室の謎は数字に置き換えられる。伝えるべきは、ひらがな1文字だ。",
+        nextMessage: "正解！最終問題が解放されました。"
+      },
+      {
+        id: "final",
+        title: "最終問題",
+        type: "puzzle",
+        label: "FINAL QUESTION",
+        text: "※『ヒント』と入力すれば、ヒントが表示されます。",
+        image: slide(20),
+        answers: ["ちょうりょく"],
+        hint: "支配人が書いた文字は本当に達筆だった。これは何を見てそう思ったのだろうか。（さらなるヒントは、『ヒントヒント』と入力）",
+        hint2: "5階の謎は支配人が紙に書いてくれた。この謎のフォント（字体）は、どこかで見たことないか？（さらなるヒントは、『ヒントヒントヒント』と入力）",
+        hint3: "入口に戻ろう。『コチラ←へお入りください』。なぜわざわざ矢印が描かれているのだろう。もらった紙は全部で18枚だ。 （さらなるヒントは、『ヒントヒントヒントヒント』と入力。）",
+        hint4: "104の俺の心の声、『いちまるし、って書くんだ』。つまり、支配人の言葉はすべて書かれていたのだ。口に出していない。そして、5分も警報アラームが鳴っていたのに寝ていた俺はいったい。",
+        nextMessage: "正解！クリアです。"
+      },
+      {
+        id: "clear",
+        title: "クリア",
+        type: "clear",
+        label: "CLEAR",
+        text: "すべての謎を解き明かしました。\nおめでとうございます！",
+        explanation: "伏線をいくつか入れていたので、それをざっと紹介する。\n\n■入口\n・支配人の言葉の枠（全て）\nこれは吹き出しにしておらず、四角の枠に記載している。\n紙に書かれていることをわずかでも表現するためだ。\n\n・「2」階建て｜客室12室｜いずれ8階47室に増築予定（1枚目｜俺の心の声）\n「」のギミックおよび、いろは歌への伏線。いろは歌は全部で47文字だ。\n\n・コチラ←へお入りください（1枚目｜支配人の言葉）\nわざわざ矢印で表現しているのは、紙に書いているという表現のためだ。\n\n・あなたは■■■■■■■■■■■■■と伺っております。（2枚目｜支配人の言葉）\nこれは伏せ字にしていたが、『聴力がなく、会話ができない』が入る。\n\n・そしてこちらをお渡しします。また、以降もこのようにご案内いたします。（2枚目｜支配人の言葉）\n渡したものは、この2枚目の紙。そして以降も紙を渡してご案内する、という意味。\n順番に案内、に強調のアンダーラインと太字が施されており、それを見た俺は直後の心の声で『強調するほど順番に案内したいみたい。』と強調に文字で気づいている。\n\n■204\n・客室を徐々に増やそうとしていますが、この部屋はまだ先の予定です。（支配人の言葉）\n部屋はいろはにほへと・・・と名付けられている。今は12の客室しかないので、ちりぬるを、まで。\n『こ』の部屋は、33番目の客室になるので、徐々に（=順番に）客室を増やした場合、作られるのはまだ先である。"
+      }
+    ];
+
+    const STORAGE_KEY = "nazotoki-progress-v4";
+
+    let unlockedIndex = Number(localStorage.getItem(STORAGE_KEY));
+    if (Number.isNaN(unlockedIndex)) unlockedIndex = 0;
+    unlockedIndex = Math.min(Math.max(unlockedIndex, 0), scenes.length - 1);
+
+    let currentIndex = 0;
+
+    const tabList = document.getElementById("tabList");
+    const content = document.getElementById("content");
+
+    function normalizeAnswer(value) {
+      return value.trim().toLowerCase();
+    }
+
+    function isCorrect(input, answers) {
+      const normalizedInput = normalizeAnswer(input);
+      return answers.some(answer => normalizeAnswer(answer) === normalizedInput);
+    }
+
+    function saveProgress(index) {
+      unlockedIndex = Math.max(unlockedIndex, index);
+      localStorage.setItem(STORAGE_KEY, String(unlockedIndex));
+    }
+
+    function getSceneImages(scene) {
+      if (Array.isArray(scene.images)) return scene.images;
+      if (scene.image) return [scene.image];
+      return [];
+    }
+
+    function renderImages(scene) {
+      const images = getSceneImages(scene);
+      if (images.length === 0) return "";
+
+      const imageHtml = images.map((src, index) => `
+        <div class="puzzle-image-wrap">
+          <img class="puzzle-image" src="${src}" alt="${scene.title}の画像${index + 1}" />
+        </div>
+      `).join("");
+
+      return `<div class="image-list">${imageHtml}</div>`;
+    }
+
+    function renderTabs() {
+      tabList.innerHTML = "";
+
+      scenes.forEach((scene, index) => {
+        const button = document.createElement("button");
+        button.className = "tab-button";
+        if (index === currentIndex) button.classList.add("active");
+        button.textContent = index <= unlockedIndex ? scene.title : "未解放";
+        button.disabled = index > unlockedIndex;
+        button.addEventListener("click", () => {
+          currentIndex = index;
+          render();
+        });
+        tabList.appendChild(button);
+      });
+    }
+
+    function renderStory(scene, index) {
+      content.innerHTML = `
+        <div class="scene-label">${scene.label}</div>
+        <h1>${scene.title}</h1>
+        <p class="story-text">${scene.text}</p>
+        ${renderImages(scene)}
+        <button class="next-button" id="nextButton">${scene.buttonText || "次へ"}</button>
+      `;
+
+      document.getElementById("nextButton").addEventListener("click", () => {
+        saveProgress(index + 1);
+        currentIndex = index + 1;
+        render();
+      });
+    }
+
+    function renderPuzzle(scene, index) {
+      content.innerHTML = `
+        <div class="scene-label">${scene.label}</div>
+        <h1>${scene.title}</h1>
+        <p class="story-text">${scene.text}</p>
+        ${renderImages(scene)}
+        <form class="answer-area" id="answerForm">
+          <input id="answerInput" type="text" autocomplete="off" placeholder="答えを入力" />
+          <button class="submit-button" type="submit">解答する</button>
+        </form>
+        <div id="message" class="message"></div>
+      `;
+
+      const form = document.getElementById("answerForm");
+      const input = document.getElementById("answerInput");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        if (isCorrect(input.value, scene.answers)) {
+          const nextIndex = Math.min(index + 1, scenes.length - 1);
+          saveProgress(nextIndex);
+          message.textContent = scene.nextMessage || "正解！次のタブが解放されました。";
+          message.className = "message ok";
+
+          setTimeout(() => {
+            currentIndex = nextIndex;
+            render();
+          }, 700);
+        } else {
+          const normalizedInput = normalizeAnswer(input.value);
+
+          if (normalizedInput === "ヒントヒントヒントヒント" && scene.hint4) {
+            message.textContent = scene.hint4;
+          } else if (normalizedInput === "ヒントヒントヒント" && scene.hint3) {
+            message.textContent = scene.hint3;
+          } else if (normalizedInput === "ヒントヒント" && scene.hint2) {
+            message.textContent = scene.hint2;
+          } else if (normalizedInput === "ヒント" && scene.hint) {
+            message.textContent = scene.hint;
+          } else if (scene.id === "floor4" && normalizedInput === "やました") {
+            message.textContent = "不正解です。漢字の勉強が必要かもしれません。";
+          } else {
+            message.textContent = "不正解です。";
+          }
+
+          message.className = "message ng";
+        }
+      });
+    }
+
+    function renderClear(scene) {
+      const postText = encodeURIComponent("『謎の多い旅館【mmの謎解き#2】』をクリアしました！\n#mmの謎解き #謎の多い旅館mm謎");
+      const postUrl = "https://twitter.com/intent/tweet?text=" + postText;
+
+      content.innerHTML = `
+        <div class="scene-label">${scene.label}</div>
+        <h1>謎の多い旅館【mmの謎解き#2】</h1>
+        <p class="story-text">${scene.text}</p>
+        <a class="post-button" href="${postUrl}" target="_blank" rel="noopener noreferrer">POST</a>
+        <div class="explanation">${scene.explanation || ""}</div>
+        <button class="reset-button" id="resetButton">進行状況をリセット</button>
+      `;
+
+      document.getElementById("resetButton").addEventListener("click", () => {
+        if (confirm("進行状況をリセットしますか？")) {
+          localStorage.removeItem(STORAGE_KEY);
+          unlockedIndex = 0;
+          currentIndex = 0;
+          render();
+        }
+      });
+    }
+
+    function render() {
+      renderTabs();
+      const scene = scenes[currentIndex];
+
+      if (scene.type === "story") {
+        renderStory(scene, currentIndex);
+      } else if (scene.type === "puzzle") {
+        renderPuzzle(scene, currentIndex);
+      } else if (scene.type === "clear") {
+        renderClear(scene);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
